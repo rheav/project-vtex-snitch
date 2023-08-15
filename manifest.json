@@ -1,0 +1,28 @@
+{
+	"manifest_version": 3,
+	"name": "vtexSnitch",
+	"version": "5.2",
+	"description": "The extension will register some information regarding the current store",
+	"author": "Victor Rhea",
+	"icons": {
+		"16": "img/vtex16.png",
+		"48": "img/vtex48.png",
+		"128": "img/vtex128.png"
+	},
+	"action": {
+		"default_popup": "popup.html",
+		"default_icon": {
+			"16": "img/vtex16.png",
+			"48": "img/vtex48.png"
+		}
+	},
+	"permissions": ["scripting", "activeTab"],
+	"host_permissions": ["<all_urls>"],
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"js": ["content.js"],
+			"run_at": "document_start"
+		}
+	]
+}
