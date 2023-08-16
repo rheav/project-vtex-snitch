@@ -1,3 +1,33 @@
+function openTab(evt, tabName) {
+	var i, tabcontent, tablinks;
+
+	tabcontent = document.getElementsByClassName("tabcontent");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+
+	tablinks = document.getElementsByClassName("tablink");
+	for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].style.backgroundColor = "";
+	}
+
+	document.getElementById(tabName).style.display = "block";
+	evt.currentTarget.style.backgroundColor = "#ffe0ef";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+	// Attach click events to each tablink button
+	let tablinks = document.querySelectorAll(".tablink");
+	for (let tablink of tablinks) {
+		tablink.addEventListener("click", function (event) {
+			openTab(event, this.getAttribute("data-tab"));
+		});
+	}
+
+	// Set default tab as Content
+	openTab(null, "Content");
+});
+
 // store version messages
 var versionText = document.getElementById("store-version");
 var versionSub = document.getElementById("store-version-subtext");
@@ -11,6 +41,7 @@ var salesChannelSub = document.getElementById("store-salesChannel-subtext");
 var wrapperAccount = document.getElementById("store-account-holder");
 var accountText = document.getElementById("store-account-holder__accoutName");
 var accountSub = document.getElementById("store-account-subtext");
+var accountName = "";
 
 // pixel loaders
 var fbLoaded = document.getElementById("fb-pixel-loaded");
@@ -55,7 +86,7 @@ function getAccountName() {
 				},
 			},
 			function (results) {
-				var accountName = results[0].result;
+				accountName = results[0].result;
 
 				if (accountName && accountName.length < 15) {
 					accountText.innerText = accountName;
@@ -131,6 +162,7 @@ function getSalesChannel() {
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		var url = new URL(tabs[0].url);
 		var baseUrl = url.protocol + "//" + url.host;
+		console.log("Base URL:", baseUrl);
 
 		fetch(baseUrl + "/api/segments")
 			.then((response) => response.json())
@@ -335,6 +367,41 @@ function countMetaTags() {
 	});
 }
 
+// Starting the fetch part
+let cookieValue = "";
+var currentTab = "";
+var currentTabUrl = "";
+// Getting cookie value from input
+document.getElementById("submitBtn").addEventListener("click", function () {
+	cookieValue = document.getElementById("cookieInput").value;
+	if (cookieValue) {
+		console.log("Cookie Value:", cookieValue);
+		// You can further process or store the cookieValue here
+	} else {
+		console.log("Please enter a cookie value.");
+	}
+});
+
+// Attach the function to the button's click event
+function getCurrentUrl() {
+	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+		currentTab = tabs[0];
+		currentTabUrl = currentTab.url;
+		console.log(currentTabUrl);
+		console.log(getProductTextLink(currentTabUrl));
+	});
+}
+
+function getProductTextLink(url) {
+	var match = url.match(/:\/\/[^/]+\/(.*?)(?=\/p\?)/);
+	if (match && match[1]) {
+		return match[1];
+	} else {
+		return null;
+	}
+}
+
+// Firing functions
 document.addEventListener("DOMContentLoaded", getAccountName);
 document.addEventListener("DOMContentLoaded", storeVersion);
 document.addEventListener("DOMContentLoaded", loadedScripts);
@@ -342,3 +409,7 @@ document.addEventListener("DOMContentLoaded", countScripts);
 document.addEventListener("DOMContentLoaded", loadedMetaTags);
 document.addEventListener("DOMContentLoaded", countMetaTags);
 document.addEventListener("DOMContentLoaded", getSalesChannel);
+document.addEventListener("DOMContentLoaded", getCurrentUrl);
+
+
+// bumerange -> accountname

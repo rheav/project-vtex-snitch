@@ -1,0 +1,276 @@
+@font-face {
+	font-family: "VTEX Trust";
+	src: url("/font/VTEXTrustFull-VF.woff2") format("woff2"), url("/font/VTEXTrustFull-VF.ttf") format("truetype");
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@200;300;700&display=swap");
+
+body {
+	background-color: #fff;
+	color: #333;
+	margin: 0;
+	font-family: VTEX Trust;
+	border-radius: 10px;
+	font-size: 12px;
+}
+
+h2 {
+	margin: 3px auto;
+}
+
+.header {
+	background: linear-gradient(70deg, rgb(247, 25, 99), rgb(255, 224, 239)) rgb(247, 25, 99);
+
+	height: 3.5em;
+	display: flex; /* Use Flexbox */
+	justify-content: center; /* Horizontally align items in the center */
+	align-items: center; /* Vertically align items in the center */
+}
+
+.header h1 {
+	margin: 0;
+	color: #fafafa;
+	font-size: 1.7em;
+	font-weight: 100;
+}
+
+.message {
+	margin: 25px auto 10px;
+}
+
+.message h2 {
+	background-color: #f8f7fc;
+	padding: 5px;
+	color: #142032;
+	font-size: 1.3em;
+}
+
+.message-version {
+	margin-top: 20px;
+	padding: 0 4px;
+}
+
+.popup-container {
+	width: 500px;
+	max-width: 700px;
+	padding: 1em;
+}
+
+#store-version-subtext,
+#store-salesChannel-subtext,
+#store-account-subtext {
+	display: none;
+	font-size: 0.8em;
+	background-color: #5b6e84;
+	color: #ffffff;
+	border-radius: 10px;
+	padding: 5px 10px;
+	margin-top: 5px;
+}
+
+#pixels-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-family: Arial, sans-serif;
+	background-color: #f8f7fc;
+}
+
+#pixels-table th {
+	background-color: #5b6e84;
+	color: #fff;
+	font-weight: bold;
+	padding: 12px 15px;
+	text-align: left;
+	border-bottom: 1px solid #e1e4e8;
+}
+
+#pixels-table td {
+	padding: 12px 15px;
+	border-bottom: 1px solid #e1e4e8;
+}
+
+#pixels-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+#pixels-table td::before {
+	content: attr(data-label);
+	font-weight: bold;
+	display: block;
+	color: #586069;
+}
+
+#pixels-table td[data-label="Loaded"] {
+	text-align: center !important;
+}
+
+#pixels-table td:first-child {
+	color: #0366d6;
+	font-size: 0.9em;
+}
+
+.message-warn {
+	background: #ffe0ef;
+	padding: 4px;
+	text-align: left;
+	color: #222;
+	margin: 0;
+}
+
+.warn-2 {
+	background: #ffc4dd;
+	color: #222;
+}
+
+.icon-with-text {
+	display: flex;
+	align-items: center;
+}
+
+.icon {
+	margin-right: 5px;
+	width: 20px;
+}
+
+.extension-version {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.extension-version-wrapper {
+	background-color: #0366d6;
+	padding: 5px 10px;
+	border: 1px solid #fff;
+}
+
+.extension-version-code {
+	color: #fff;
+}
+
+a {
+	text-decoration: none;
+}
+/* unvisited link */
+a:link {
+	color: #ffc4dd;
+}
+
+/* visited link */
+a:visited {
+	color: #ffc4dd;
+}
+
+/* mouse over link */
+a:hover {
+	color: #f71963;
+}
+
+/* selected link */
+a:active {
+	color: #0366d6;
+}
+
+#store-salesChannel {
+	font-size: 1em;
+	background-color: #ffc4dd;
+	color: #142032;
+	padding: 1px 10px;
+	font-weight: bold;
+}
+
+#store-account-holder__accoutName {
+	font-size: 1em;
+	background-color: #ffc4dd;
+	color: #142032;
+	padding: 1px 10px;
+}
+
+.dynamic-text {
+	padding: 0 8px;
+}
+
+#blinkDot {
+	animation: blink 2.3s infinite;
+}
+@keyframes blink {
+	0% {
+		opacity: 0;
+	}
+	50% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+.tab-header {
+	display: flex;
+	background-color: #f6f8fa;
+	border-bottom: 1px solid #e1e4e8;
+}
+
+.tabcontent {
+	display: none;
+}
+
+.tablink {
+	flex: 1;
+	padding: 10px 15px;
+	text-align: center;
+	border: 1px solid transparent;
+	background-color: #f6f8fa;
+	color: #24292e;
+	transition: 0.3s;
+	font-size: 1.2em;
+	cursor: pointer;
+	outline: none;
+	font-family: "Source Code Pro", monospace;
+	font-weight: bold;
+	letter-spacing: -0.05em;
+}
+
+.tablink:hover {
+	background-color: #e1e4e8;
+	border: 1px solid #f71963;
+}
+
+.input-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 20px;
+	padding: 20px;
+	border-radius: 5px;
+	background-color: #f8f8f8;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#cookieInput {
+	padding: 10px 15px;
+	border: none;
+	border-radius: 5px;
+	outline: none;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	flex-grow: 1;
+	font-size: 16px;
+	transition: box-shadow 0.2s ease;
+}
+
+#cookieInput:focus {
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#submitBtn {
+	padding: 10px 15px;
+	border: none;
+	border-radius: 5px;
+	background-color: rgb(247, 25, 99);
+	color: white;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+#submitBtn:hover {
+	background-color: rgb(217, 15, 89);
+}

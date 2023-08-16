@@ -5,371 +5,216 @@
 		<meta name="author" content="Victor Rhea" />
 
 		<title>VTEX Snithcer</title>
-
-		<style>
-			@font-face {
-				font-family: "VTEX Trust";
-				src: url("/font/VTEXTrustFull-VF.woff2") format("woff2"), url("/font/VTEXTrustFull-VF.ttf") format("truetype");
-			}
-			body {
-				background-color: #fff;
-				color: #333;
-				margin: 0;
-				font-family: VTEX Trust;
-				border-radius: 10px;
-				font-size: 12px;
-			}
-
-			h1 {
-				color: #f71963;
-			}
-			h2 {
-				margin: 3px auto;
-			}
-
-			.message {
-				margin: 25px auto 10px;
-			}
-
-			.message h2 {
-				background-color: #f8f7fc;
-				padding: 5px;
-				color: #142032;
-				font-size: 1.3em;
-			}
-
-			.message-version {
-				margin-top: 20px;
-				padding: 0 4px;
-			}
-
-			.popup-container {
-				width: 500px;
-				max-width: 700px;
-				padding: 1em;
-			}
-
-			#store-version-subtext,
-			#store-salesChannel-subtext,
-			#store-account-subtext {
-				display: none;
-				font-size: 0.8em;
-				background-color: #5b6e84;
-				color: #ffffff;
-				border-radius: 10px;
-				padding: 5px 10px;
-				margin-top: 5px;
-			}
-
-			#pixels-table {
-				width: 100%;
-				border-collapse: collapse;
-				font-family: Arial, sans-serif;
-				background-color: #f8f7fc;
-			}
-
-			#pixels-table th {
-				background-color: #5b6e84;
-				color: #fff;
-				font-weight: bold;
-				padding: 12px 15px;
-				text-align: left;
-				border-bottom: 1px solid #e1e4e8;
-			}
-
-			#pixels-table td {
-				padding: 12px 15px;
-				border-bottom: 1px solid #e1e4e8;
-			}
-
-			#pixels-table tbody tr:last-child td {
-				border-bottom: none;
-			}
-
-			#pixels-table td::before {
-				content: attr(data-label);
-				font-weight: bold;
-				display: block;
-				color: #586069;
-			}
-
-			#pixels-table td[data-label="Loaded"] {
-				text-align: center !important;
-			}
-
-			#pixels-table td:first-child {
-				color: #0366d6;
-				font-size: 0.9em;
-			}
-
-			.message-warn {
-				background: #ffe0ef;
-				padding: 4px;
-				text-align: left;
-				color: #222;
-				margin: 0;
-			}
-
-			.warn-2 {
-				background: #ffc4dd;
-				color: #222;
-			}
-
-			.icon-with-text {
-				display: flex;
-				align-items: center;
-			}
-
-			.icon {
-				margin-right: 5px;
-				width: 20px;
-			}
-
-			.extension-version {
-				display: flex;
-				justify-content: flex-end;
-			}
-
-			.extension-version-wrapper {
-				background-color: #0366d6;
-				padding: 5px 10px;
-				border: 1px solid #fff;
-			}
-
-			.extension-version-code {
-				color: #fff;
-			}
-
-			a {
-				text-decoration: none;
-			}
-			/* unvisited link */
-			a:link {
-				color: #ffc4dd;
-			}
-
-			/* visited link */
-			a:visited {
-				color: #ffc4dd;
-			}
-
-			/* mouse over link */
-			a:hover {
-				color: #f71963;
-			}
-
-			/* selected link */
-			a:active {
-				color: #0366d6;
-			}
-
-			#store-salesChannel {
-				font-size: 1em;
-				background-color: #ffc4dd;
-				color: #142032;
-				padding: 1px 10px;
-				font-weight: bold;
-			}
-
-			#store-account-holder__accoutName {
-				font-size: 1em;
-				background-color: #ffc4dd;
-				color: #142032;
-				padding: 1px 10px;
-			}
-
-			.dynamic-text {
-				padding: 0 8px;
-			}
-
-			#blinkDot {
-				animation: blink 2.3s infinite;
-			}
-			@keyframes blink {
-				0% {
-					opacity: 0;
-				}
-				50% {
-					opacity: 1;
-				}
-				100% {
-					opacity: 0;
-				}
-			}
-		</style>
+		<link rel="stylesheet" href="design.css" />
 	</head>
 	<body>
 		<div class="popup-container">
-			<h1>VTEX Store Snitch</h1>
+			<div class="header"><h1>vtexSnitch</h1></div>
 
-			<div class="message message-account">
-				<h2>VTEX Account</h2>
-				<div id="store-account-holder" class="dynamic-text">✅ Account Name: <span id="store-account-holder__accoutName"></span></div>
-				<div id="store-account-subtext"></div>
-			</div>
-
-			<div class="message message-version">
-				<h2 style="margin: 0">VTEX Code Version</h2>
-				<div class="message-warn" style="margin-bottom: 3px">
-					<span id="blinkDot">➡️</span> Check the version through homepage, PLP or PDP, <u>not</u> <i>cart</i> or <i>checkout</i>!
+			<div class="tabs">
+				<div class="tab-header">
+					<button class="tablink" data-tab="Content">&lt;storeInfo/&gt;</button>
+					<button class="tablink" data-tab="Custom">&lt;productInfo/&gt;</button>
 				</div>
-				<div id="store-version" class="dynamic-text" style="padding: 0 4px"></div>
-				<div id="store-version-subtext"></div>
-			</div>
 
-			<div class="message message-salesChannel">
-				<h2>Sales Channel</h2>
-				<div id="store-salesChannel-holder" class="dynamic-text">✅ Current SC: <span id="store-salesChannel"></span></div>
-				<div id="store-salesChannel-subtext"></div>
-			</div>
-
-			<div class="message message-pixels">
-				<h2>Pixels/Scripts</h2>
-				<span id="store-pixels"
-					><table id="pixels-table">
-						<thead>
-							<tr>
-								<th>Script</th>
-								<th>Loaded</th>
-								<th>Matches</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/ga4.png" alt="ga4-icon" class="icon" />
-										<span>GA4</span>
-									</div>
-								</td>
-								<td id="ga4-loaded"></td>
-								<td id="ga4-ocurr"></td>
-							</tr>
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/ga-ua.png" alt="ga-ua-icon" class="icon" />
-										<span>GA Universal</span>
-									</div>
-								</td>
-								<td id="ua-loaded"></td>
-								<td id="gaUa-ocurr"></td>
-							</tr>
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/gtm.png" alt="gtm-icon" class="icon" />
-										<span>Google Tag Manager</span>
-									</div>
-								</td>
-								<td id="gtm-loaded"></td>
-								<td id="gtm-ocurr"></td>
-							</tr>
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/meta.png" alt="meta-icon" class="icon" />
-										<span>Meta Pixel</span>
-									</div>
-								</td>
-								<td id="fb-pixel-loaded"></td>
-								<td id="fb-ocurr"></td>
-							</tr>
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/pinterest.png" alt="pinterest-icon" class="icon" />
-										<span>Pinterest</span>
-									</div>
-								</td>
-								<td id="pinterest-loaded"></td>
-								<td id="pinterest-ocurr"></td>
-							</tr>
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/taboola.jpg" alt="taboola-icon" class="icon" />
-										<span>Taboola</span>
-									</div>
-								</td>
-								<td id="taboola-loaded"></td>
-								<td id="tab-ocurr"></td>
-							</tr>
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/tiktok.png" alt="tiktok-icon" class="icon" />
-										<span>TikTok</span>
-									</div>
-								</td>
-								<td id="tiktok-loaded"></td>
-								<td id="ttk-ocurr"></td>
-							</tr>
-						</tbody>
-					</table>
-					<div class="message-warn">⚠️ Matches >1 does not mean that events are fired twice, but might be good to check!</div>
-					<div class="message-warn warn-2">
-						➡️ Best way to confirm duplicated firing for events is identifying the pixel request through devtools > network tab.
+				<!-- Content Tab -->
+				<div id="Content" class="tabcontent">
+					<div class="message message-account">
+						<h2>VTEX Account</h2>
+						<div id="store-account-holder" class="dynamic-text">
+							✅ Account Name: <span id="store-account-holder__accoutName"></span>
+						</div>
+						<div id="store-account-subtext"></div>
 					</div>
-				</span>
-			</div>
-			<div class="message message-metaTags">
-				<h2>Domain Verification Meta Tags</h2>
-				<span id="store-metaTags"
-					><table id="pixels-table">
-						<thead>
-							<tr>
-								<th>Meta Tag</th>
-								<th>Loaded</th>
-								<th>Matches</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/google.png" alt="ga4-icon" class="icon" />
-										<span>Google Site Verification</span>
-									</div>
-								</td>
-								<td id="googleMeta-loaded"></td>
-								<td id="googleMeta-ocurr"></td>
-							</tr>
 
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/meta.png" alt="meta-icon" class="icon" />
-										<span>Meta Domain Verification</span>
-									</div>
-								</td>
-								<td id="facebookMeta-loaded"></td>
-								<td id="facebookMeta-ocurr"></td>
-							</tr>
-							<tr>
-								<td>
-									<div class="icon-with-text">
-										<img src="/img/pinterest.png" alt="pinterest-icon" class="icon" />
-										<span>Pinterest Domain Verification</span>
-									</div>
-								</td>
-								<td id="pinterestMeta-loaded"></td>
-								<td id="pinterestMeta-ocurr"></td>
-							</tr>
-						</tbody>
-					</table>
-					<div class="message-warn">⚠️ Matches >1 should be checked in the code!</div>
-					<div class="message-warn warn-2">
-						➡️ As there are other ways to verify the domain besides meta tags, matches = 0 is not necessarily a problem.
+					<div class="message message-version">
+						<h2 style="margin: 0">VTEX Code Version</h2>
+						<div class="message-warn" style="margin-bottom: 3px">
+							<span id="blinkDot">➡️</span> Check the version through homepage, PLP or PDP, <u>not</u> <i>cart</i> or
+							<i>checkout</i>!
+						</div>
+						<div id="store-version" class="dynamic-text" style="padding: 0 4px"></div>
+						<div id="store-version-subtext"></div>
 					</div>
-				</span>
+
+					<div class="message message-salesChannel">
+						<h2>Sales Channel</h2>
+						<div id="store-salesChannel-holder" class="dynamic-text">
+							✅ Current SC: <span id="store-salesChannel"></span>
+						</div>
+						<div id="store-salesChannel-subtext"></div>
+					</div>
+
+					<div class="message message-pixels">
+						<h2>Pixels/Scripts</h2>
+						<span id="store-pixels"
+							><table id="pixels-table">
+								<thead>
+									<tr>
+										<th>Script</th>
+										<th>Loaded</th>
+										<th>Matches</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/ga4.png" alt="ga4-icon" class="icon" />
+												<span>GA4</span>
+											</div>
+										</td>
+										<td id="ga4-loaded"></td>
+										<td id="ga4-ocurr"></td>
+									</tr>
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/ga-ua.png" alt="ga-ua-icon" class="icon" />
+												<span>GA Universal</span>
+											</div>
+										</td>
+										<td id="ua-loaded"></td>
+										<td id="gaUa-ocurr"></td>
+									</tr>
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/gtm.png" alt="gtm-icon" class="icon" />
+												<span>Google Tag Manager</span>
+											</div>
+										</td>
+										<td id="gtm-loaded"></td>
+										<td id="gtm-ocurr"></td>
+									</tr>
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/meta.png" alt="meta-icon" class="icon" />
+												<span>Meta Pixel</span>
+											</div>
+										</td>
+										<td id="fb-pixel-loaded"></td>
+										<td id="fb-ocurr"></td>
+									</tr>
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/pinterest.png" alt="pinterest-icon" class="icon" />
+												<span>Pinterest</span>
+											</div>
+										</td>
+										<td id="pinterest-loaded"></td>
+										<td id="pinterest-ocurr"></td>
+									</tr>
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/taboola.jpg" alt="taboola-icon" class="icon" />
+												<span>Taboola</span>
+											</div>
+										</td>
+										<td id="taboola-loaded"></td>
+										<td id="tab-ocurr"></td>
+									</tr>
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/tiktok.png" alt="tiktok-icon" class="icon" />
+												<span>TikTok</span>
+											</div>
+										</td>
+										<td id="tiktok-loaded"></td>
+										<td id="ttk-ocurr"></td>
+									</tr>
+								</tbody>
+							</table>
+							<div class="message-warn">
+								⚠️ Matches >1 does not mean that events are fired twice, but might be good to check!
+							</div>
+							<div class="message-warn warn-2">
+								➡️ Best way to confirm duplicated firing for events is identifying the pixel request through devtools >
+								network tab.
+							</div>
+						</span>
+					</div>
+					<div class="message message-metaTags">
+						<h2>Domain Verification Meta Tags</h2>
+						<span id="store-metaTags"
+							><table id="pixels-table">
+								<thead>
+									<tr>
+										<th>Meta Tag</th>
+										<th>Loaded</th>
+										<th>Matches</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/google.png" alt="ga4-icon" class="icon" />
+												<span>Google Site Verification</span>
+											</div>
+										</td>
+										<td id="googleMeta-loaded"></td>
+										<td id="googleMeta-ocurr"></td>
+									</tr>
+
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/meta.png" alt="meta-icon" class="icon" />
+												<span>Meta Domain Verification</span>
+											</div>
+										</td>
+										<td id="facebookMeta-loaded"></td>
+										<td id="facebookMeta-ocurr"></td>
+									</tr>
+									<tr>
+										<td>
+											<div class="icon-with-text">
+												<img src="/img/pinterest.png" alt="pinterest-icon" class="icon" />
+												<span>Pinterest Domain Verification</span>
+											</div>
+										</td>
+										<td id="pinterestMeta-loaded"></td>
+										<td id="pinterestMeta-ocurr"></td>
+									</tr>
+								</tbody>
+							</table>
+							<div class="message-warn">⚠️ Matches >1 should be checked in the code!</div>
+							<div class="message-warn warn-2">
+								➡️ As there are other ways to verify the domain besides meta tags, matches = 0 is not necessarily a
+								problem.
+							</div>
+						</span>
+					</div>
+					<div class="extension-version">
+						<div class="extension-version-wrapper">
+							<div class="extension-version-code">v5.2j</div>
+						</div>
+					</div>
+				</div>
 			</div>
-			<div class="extension-version">
-				<div class="extension-version-wrapper">
-					<div class="extension-version-code">v5.2j</div>
+
+			<!-- Custom Tab -->
+			<div id="Custom" class="tabcontent">
+				<div class="input-container">
+					<input type="text" id="cookieInput" placeholder="Enter your cookie value" />
+					<button id="submitBtn">Submit</button>
+				</div>
+
+				<div class="message message-product-name">
+					<h2>productId:</h2>
+					<div id="product-name-holder" class="dynamic-text">
+						<h3>productName:</h3>
+					</div>
+					<div id="product-name-subtext"></div>
 				</div>
 			</div>
 		</div>
+
 		<script src="popup.js"></script>
 	</body>
 </html>
