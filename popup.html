@@ -201,16 +201,37 @@
 			<!-- Custom Tab -->
 			<div id="Custom" class="tabcontent">
 				<div class="input-container">
-					<input type="text" id="cookieInput" placeholder="Enter your cookie value" />
-					<button id="submitBtn">Submit</button>
+					<div class="input-wrapper">
+						<input type="text" id="cookieInput" placeholder="Enter your cookie value" />
+						<button id="submitBtn">Submit</button>
+					</div>
+					<div id="cookie-msg"></div>
 				</div>
 
-				<div class="message message-product-name">
-					<h2>productId:</h2>
-					<div id="product-name-holder" class="dynamic-text">
-						<h3>productName:</h3>
+				<div>
+					<div class="p-info-header">
+						<h2>currentProduct</h2>
 					</div>
-					<div id="product-name-subtext"></div>
+					<table class="modern-table">
+						<tbody>
+							<tr>
+								<td class="p-key">productName:</td>
+								<td class="p-value" id="product-name"></td>
+							</tr>
+							<tr>
+								<td class="p-key">productId:</td>
+								<td class="p-value" id="product-id"></td>
+							</tr>
+							<tr>
+								<td class="p-key">categoryId:</td>
+								<td class="p-value" id="product-category"></td>
+							</tr>
+							<tr>
+								<td class="p-key">brandId:</td>
+								<td class="p-value" id="product-brand"></td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>

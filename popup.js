@@ -367,38 +367,109 @@ function countMetaTags() {
 	});
 }
 
-// Starting the fetch part
+const cookieWarn = document.getElementById("cookie-msg");
 let cookieValue = "";
 var currentTab = "";
 var currentTabUrl = "";
-// Getting cookie value from input
+var accountName = "yourAccountName"; // Assuming you have this defined elsewhere
+
+// Product Variables
+let responseData = [];
+const productTitlePlace = document.getElementById("product-name");
+const productIdPlace = document.getElementById("product-id");
+const brandIdPlace = document.getElementById("product-brand");
+const categoryIdPlace = document.getElementById("product-category");
+
+// Attach the function to the button's click event
 document.getElementById("submitBtn").addEventListener("click", function () {
 	cookieValue = document.getElementById("cookieInput").value;
+	cookieWarn.style.display = "block";
+
 	if (cookieValue) {
-		console.log("Cookie Value:", cookieValue);
-		// You can further process or store the cookieValue here
+		getCurrentUrl(); // Call this function to get the current URL when the cookie is valid
 	} else {
-		console.log("Please enter a cookie value.");
+		cookieWarn.textContent = "⚠️ Please, enter a valid authCookie";
+		cookieWarn.style.backgroundColor = "#fff9c4";
 	}
 });
 
-// Attach the function to the button's click event
 function getCurrentUrl() {
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		currentTab = tabs[0];
 		currentTabUrl = currentTab.url;
-		console.log(currentTabUrl);
-		console.log(getProductTextLink(currentTabUrl));
+
+		const productLink = getProductTextLink(currentTabUrl);
+
+		if (productLink) {
+			fetchData(productLink);
+		} else {
+			cookieWarn.textContent = "⚠️ Error in fetching product link from URL";
+			cookieWarn.style.backgroundColor = "#fff9c4";
+		}
 	});
 }
 
 function getProductTextLink(url) {
 	var match = url.match(/:\/\/[^/]+\/(.*?)(?=\/p\?)/);
-	if (match && match[1]) {
-		return match[1];
-	} else {
-		return null;
-	}
+	return match && match[1] ? match[1] : null;
+}
+
+function fetchData(productLink) {
+	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pub/products/search/${productLink}/p`;
+
+	// Display "Fetching data..." message before the fetch starts
+	cookieWarn.textContent = "🔄 Fetching data...";
+	cookieWarn.style.backgroundColor = "#f5f5f5"; // Light grey as an example
+
+	fetch(url, {
+		method: "GET",
+		headers: {
+			VtexIdclientAutCookie: cookieValue,
+		},
+	})
+		.then((response) => response.json())
+		.then((data) => {
+			responseData = data;
+			console.log(data);
+			productTitlePlace.textContent = toTitleCase(responseData[0].productName);
+			productIdPlace.textContent = toTitleCase(responseData[0].productId);
+			brandIdPlace.textContent = toTitleCase(String(responseData[0].brandId));
+			categoryIdPlace.textContent = toTitleCase(responseData[0].categoryId);
+
+			// Execute the second fetch based on the productId from the first fetch's result
+			const productId = responseData[0].productId;
+			const secondUrl = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pvt/sku/stockkeepingunitByProductId/${productId}`;
+			return fetch(secondUrl, {
+				method: "GET",
+				headers: {
+					VtexIdclientAutCookie: cookieValue,
+				},
+			}); // Return this fetch so we can chain another .then() after it
+		})
+		.then((response) => response.json()) // Parse the response of the second fetch
+		.then((secondData) => {
+			console.log(secondData); // Log the result of the second fetch
+
+			// Now display the success message after both fetches are complete
+			cookieWarn.textContent = "✅ Valid authCookie and fetched data successfully";
+			cookieWarn.style.backgroundColor = "#e5ffe6";
+		})
+		.catch((error) => {
+			console.error("Error fetching data:", error);
+			cookieWarn.textContent = "⚠️ Error while fetching data";
+			cookieWarn.style.backgroundColor = "#fff9c4";
+		});
+}
+
+// bumerange -> accountname
+
+// ----------------------------------------------------------------- Utility functions
+
+// Capitalize the API returns
+function toTitleCase(str) {
+	return str.toLowerCase().replace(/\b\w/g, function (letter) {
+		return letter.toUpperCase();
+	});
 }
 
 // Firing functions
@@ -410,6 +481,3 @@ document.addEventListener("DOMContentLoaded", loadedMetaTags);
 document.addEventListener("DOMContentLoaded", countMetaTags);
 document.addEventListener("DOMContentLoaded", getSalesChannel);
 document.addEventListener("DOMContentLoaded", getCurrentUrl);
-
-
-// bumerange -> accountname
