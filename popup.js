@@ -368,24 +368,44 @@ function countMetaTags() {
 }
 
 const cookieWarn = document.getElementById("cookie-msg");
-let cookieValue = "";
+let g_cookieValue = "";
 var currentTab = "";
 var currentTabUrl = "";
-var accountName = "yourAccountName"; // Assuming you have this defined elsewhere
+
+// Transforming fetched info into gloal scoped info
+let g_brandStatusData = "";
+let g_categoryStatusData = "";
+let g_productStatusData = "";
 
 // Product Variables
 let responseData = [];
+let brandId = "";
+let categoryId = "";
+let productId = "";
+let g_allSkusFromProduct = "";
+
+// Product Information locations in the DOM
 const productTitlePlace = document.getElementById("product-name");
 const productIdPlace = document.getElementById("product-id");
 const brandIdPlace = document.getElementById("product-brand");
 const categoryIdPlace = document.getElementById("product-category");
 
+// SKU information location in the DOM
+const skuId = document.getElementById("sku-id");
+const skuName = document.getElementById("sku-name");
+const skuStatus = document.getElementById("sku-status");
+
+// Status information locations in the DOM
+const g_brandStatus = document.getElementById("product-brand-status");
+const g_categoryStatus = document.getElementById("product-category-status");
+const g_productStatus = document.getElementById("product-id-status");
+
 // Attach the function to the button's click event
 document.getElementById("submitBtn").addEventListener("click", function () {
-	cookieValue = document.getElementById("cookieInput").value;
+	g_cookieValue = document.getElementById("cookieInput").value;
 	cookieWarn.style.display = "block";
 
-	if (cookieValue) {
+	if (g_cookieValue) {
 		getCurrentUrl(); // Call this function to get the current URL when the cookie is valid
 	} else {
 		cookieWarn.textContent = "⚠️ Please, enter a valid authCookie";
@@ -401,7 +421,7 @@ function getCurrentUrl() {
 		const productLink = getProductTextLink(currentTabUrl);
 
 		if (productLink) {
-			fetchData(productLink);
+			mainFetchInfo(productLink);
 		} else {
 			cookieWarn.textContent = "⚠️ Error in fetching product link from URL";
 			cookieWarn.style.backgroundColor = "#fff9c4";
@@ -414,51 +434,40 @@ function getProductTextLink(url) {
 	return match && match[1] ? match[1] : null;
 }
 
-function fetchData(productLink) {
-	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pub/products/search/${productLink}/p`;
+async function mainFetchInfo(productLink) {
+	try {
+		// Display "Fetching data..." message before the fetch starts
+		cookieWarn.textContent = "🔄 Fetching data...";
+		cookieWarn.style.backgroundColor = "#f5f5f5"; // Light grey as an example
 
-	// Display "Fetching data..." message before the fetch starts
-	cookieWarn.textContent = "🔄 Fetching data...";
-	cookieWarn.style.backgroundColor = "#f5f5f5"; // Light grey as an example
+		const prodPubData = await fetchProductByTextLink(productLink);
 
-	fetch(url, {
-		method: "GET",
-		headers: {
-			VtexIdclientAutCookie: cookieValue,
-		},
-	})
-		.then((response) => response.json())
-		.then((data) => {
-			responseData = data;
-			console.log(data);
-			productTitlePlace.textContent = toTitleCase(responseData[0].productName);
-			productIdPlace.textContent = toTitleCase(responseData[0].productId);
-			brandIdPlace.textContent = toTitleCase(String(responseData[0].brandId));
-			categoryIdPlace.textContent = toTitleCase(responseData[0].categoryId);
+		const productData = await fetchProductById(productId);
+		g_productStatusData = productData;
+		g_productStatus.textContent = g_productStatusData.IsActive ? "✅ Produto ativo" : "❌ Produto inativo";
 
-			// Execute the second fetch based on the productId from the first fetch's result
-			const productId = responseData[0].productId;
-			const secondUrl = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pvt/sku/stockkeepingunitByProductId/${productId}`;
-			return fetch(secondUrl, {
-				method: "GET",
-				headers: {
-					VtexIdclientAutCookie: cookieValue,
-				},
-			}); // Return this fetch so we can chain another .then() after it
-		})
-		.then((response) => response.json()) // Parse the response of the second fetch
-		.then((secondData) => {
-			console.log(secondData); // Log the result of the second fetch
+		const skuData = await fetchSkuByProductId(productId);
+		console.log(skuData);
+		g_allSkusFromProduct = skuData;
 
-			// Now display the success message after both fetches are complete
-			cookieWarn.textContent = "✅ Valid authCookie and fetched data successfully";
-			cookieWarn.style.backgroundColor = "#e5ffe6";
-		})
-		.catch((error) => {
-			console.error("Error fetching data:", error);
-			cookieWarn.textContent = "⚠️ Error while fetching data";
-			cookieWarn.style.backgroundColor = "#fff9c4";
-		});
+		const brandStatusData = await fetchBrandStatus(brandId);
+		g_brandStatusData = brandStatusData;
+		g_brandStatus.textContent = g_brandStatusData.isActive ? "✅ Marca ativa" : "❌ Marca inativa";
+
+		const categoryStatusData = await fetchCategoryStatus(categoryId);
+		g_categoryStatusData = categoryStatusData;
+		g_categoryStatus.textContent = g_categoryStatusData.IsActive ? "✅ Categoria ativa" : "❌ Categoria inativa";
+
+		generateCards(skuData);
+
+		// Display the success message after all fetches are complete
+		cookieWarn.textContent = "✅ Valid authCookie and fetched data successfully";
+		cookieWarn.style.backgroundColor = "#e5ffe6";
+	} catch (error) {
+		console.error("Error fetching data:", error);
+		cookieWarn.textContent = "⚠️ Error while fetching data";
+		cookieWarn.style.backgroundColor = "#fff9c4";
+	}
 }
 
 // bumerange -> accountname
@@ -469,6 +478,125 @@ function fetchData(productLink) {
 function toTitleCase(str) {
 	return str.toLowerCase().replace(/\b\w/g, function (letter) {
 		return letter.toUpperCase();
+	});
+}
+
+async function fetchProductByTextLink(productLink) {
+	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pub/products/search/${productLink}/p`;
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers: {
+			VtexIdclientAutCookie: g_cookieValue,
+		},
+	});
+
+	const data = await response.json();
+
+	// Getting value from the fetch into global variables for later usage
+	productId = toTitleCase(data[0].productId);
+	brandId = toTitleCase(String(data[0].brandId));
+	categoryId = toTitleCase(data[0].categoryId);
+
+	// Placing the product information into the DOM
+	productTitlePlace.textContent = toTitleCase(data[0].productName);
+	productIdPlace.textContent = productId;
+	brandIdPlace.textContent = brandId;
+	categoryIdPlace.textContent = categoryId;
+
+	return data; // Return the productId for the next action
+}
+
+async function fetchProductById(productId) {
+	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog/pvt/product/${productId}`;
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers: {
+			VtexIdclientAutCookie: g_cookieValue,
+		},
+	});
+
+	return await response.json();
+}
+
+async function fetchSkuByProductId(productId) {
+	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pvt/sku/stockkeepingunitByProductId/${productId}`;
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers: {
+			VtexIdclientAutCookie: g_cookieValue,
+		},
+	});
+
+	return await response.json();
+}
+
+async function fetchBrandStatus(brandId) {
+	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pvt/brand/${brandId}`;
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers: {
+			VtexIdclientAutCookie: g_cookieValue,
+		},
+	});
+
+	return await response.json();
+}
+async function fetchCategoryStatus(categoryId) {
+	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog/pvt/category/${categoryId}`;
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers: {
+			VtexIdclientAutCookie: g_cookieValue,
+		},
+	});
+
+	return await response.json();
+}
+
+async function generateCards(dataArray) {
+	const container = document.querySelector(".container");
+
+	// Clear the container
+	container.innerHTML = "";
+
+	dataArray.forEach((item) => {
+		const card = document.createElement("div");
+		card.className = "card";
+
+		// Determine card background based on isActive property
+		if (item.IsActive) {
+			card.classList.add("card-active");
+		} else {
+			card.classList.add("card-inactive");
+		}
+
+		const cardContent = document.createElement("div");
+		cardContent.className = "card-content";
+
+		const skuElem = document.createElement("div");
+		skuElem.className = "sku";
+		skuElem.innerHTML = `<strong>skuID:</strong> <span>${item.Id}</span>`;
+
+		const nameElem = document.createElement("div");
+		nameElem.className = "name";
+		nameElem.innerHTML = `<strong>Name:</strong> <span>${item.Name}</span>`;
+
+		const statusElem = document.createElement("div");
+		statusElem.className = "status";
+		statusElem.innerHTML = `<strong>isActive:</strong> <span>${item.IsActive}</span>`;
+
+		cardContent.appendChild(skuElem);
+		cardContent.appendChild(nameElem);
+		cardContent.appendChild(statusElem);
+
+		card.appendChild(cardContent);
+
+		container.appendChild(card);
 	});
 }
 
