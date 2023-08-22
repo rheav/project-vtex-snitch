@@ -12,7 +12,10 @@ function openTab(evt, tabName) {
 	}
 
 	document.getElementById(tabName).style.display = "block";
-	evt.currentTarget.style.backgroundColor = "#ffe0ef";
+	if (evt) {
+		// Add this check
+		evt.currentTarget.style.backgroundColor = "#ffe0ef";
+	}
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -26,6 +29,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	// Set default tab as Content
 	openTab(null, "Content");
+
+	// Set the default background color for the "Content" tab
+	let contentTab = document.querySelector('.tablink[data-tab="Content"]');
+	if (contentTab) {
+		contentTab.style.backgroundColor = "#ffe0ef";
+	}
 });
 
 // store version messages
@@ -81,20 +90,22 @@ function getAccountName() {
 				target: { tabId: tabId },
 				function: function () {
 					var sourceCode = document.documentElement.outerHTML;
-					var match = sourceCode.match(/https:\/\/(.*?)\.(vteximg\.com\.br|vtexassets\.com)\//);
+					var match = sourceCode.match(/https:\/\/([\w-]+)\.(vteximg\.com\.br|vtexassets\.com)\//);
 					return match ? match[1] : null;
 				},
 			},
 			function (results) {
 				accountName = results[0].result;
 
-				if (accountName && accountName.length < 15) {
+				if (accountName && accountName.length < 30) {
 					accountText.innerText = accountName;
+					document.querySelector(".warn-msg").style.display = "none";
 				} else {
 					wrapperAccount.innerText = "❌ Account name not found";
 					accountSub.innerHTML =
 						"⚠️ If this is a FastStore or headless store, check for the accountName directly into source code (CTRL+U).";
 					accountSub.style.display = "inline-flex";
+					document.querySelector(".product-info-container").innerHTML = "";
 				}
 			}
 		);
@@ -158,6 +169,8 @@ function storeVersion() {
 	});
 }
 
+let g_salesChannel;
+
 function getSalesChannel() {
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		var url = new URL(tabs[0].url);
@@ -167,7 +180,8 @@ function getSalesChannel() {
 		fetch(baseUrl + "/api/segments")
 			.then((response) => response.json())
 			.then((data) => {
-				currentSalesChannel.innerText = data.channel;
+				g_salesChannel = data.channel;
+				currentSalesChannel.innerText = g_salesChannel;
 			})
 			.catch((error) => {
 				wrapperSalesChannel.innerHTML =
@@ -379,10 +393,12 @@ let g_productStatusData = "";
 
 // Product Variables
 let responseData = [];
+let productLink = "";
 let brandId = "";
 let categoryId = "";
 let productId = "";
 let g_allSkusFromProduct = "";
+let g_simulationResponse = "";
 
 // Product Information locations in the DOM
 const productTitlePlace = document.getElementById("product-name");
@@ -394,19 +410,38 @@ const categoryIdPlace = document.getElementById("product-category");
 const skuId = document.getElementById("sku-id");
 const skuName = document.getElementById("sku-name");
 const skuStatus = document.getElementById("sku-status");
+const g_skuQuantity = document.getElementById("sku-quantity");
 
 // Status information locations in the DOM
 const g_brandStatus = document.getElementById("product-brand-status");
 const g_categoryStatus = document.getElementById("product-category-status");
 const g_productStatus = document.getElementById("product-id-status");
 
-// Attach the function to the button's click event
+// Simulation DOM variables
+const simulationInfoContainer = document.getElementById("simulation-info-container");
+const simulationResponse = document.getElementById("simulation-response");
+const simulationWarn = document.querySelector(".sim-msg-container");
+const simulationResumeStatus = document.getElementById("simulation-resume-status");
+const simulationResumeStockBalance = document.getElementById("simulation-resume-stock");
+const simulationResumeReason = document.getElementById("simulation-resume-reason");
+
+// Simulation attributes
+let g_simulationAvailability;
+let g_simulationSkuId;
+let g_stockBalance;
+
 document.getElementById("submitBtn").addEventListener("click", function () {
 	g_cookieValue = document.getElementById("cookieInput").value;
 	cookieWarn.style.display = "block";
 
 	if (g_cookieValue) {
 		getCurrentUrl(); // Call this function to get the current URL when the cookie is valid
+
+		// Show the hidden tabs
+		let hiddenTabs = document.querySelectorAll(".hidden-tab");
+		for (let tab of hiddenTabs) {
+			tab.style.display = "inline-block";
+		}
 	} else {
 		cookieWarn.textContent = "⚠️ Please, enter a valid authCookie";
 		cookieWarn.style.backgroundColor = "#fff9c4";
@@ -418,7 +453,8 @@ function getCurrentUrl() {
 		currentTab = tabs[0];
 		currentTabUrl = currentTab.url;
 
-		const productLink = getProductTextLink(currentTabUrl);
+		productLink = getProductTextLink(currentTabUrl);
+		console.log(`prodLink = ${productLink}`);
 
 		if (productLink) {
 			mainFetchInfo(productLink);
@@ -429,8 +465,20 @@ function getCurrentUrl() {
 	});
 }
 
+const regexObject = {
+	casaspernambucanas: /:\/\/[^/]+\/(?:p\/)?(.*?)(?=\/p$|\/p\?|\/|$)/,
+	default: /:\/\/[^/]+\/(.*?)(?=\/p$|\/|$)/,
+	// Add more as needed, e.g., accountName: /your-regex/
+};
+
 function getProductTextLink(url) {
-	var match = url.match(/:\/\/[^/]+\/(.*?)(?=\/p\?)/);
+	var match;
+	// Check if there's a regex for the given accountName, or use default
+	let selectedRegex = regexObject[accountName] || regexObject.default;
+
+	match = url.match(selectedRegex);
+	console.log(`Used regex for ${accountName in regexObject ? accountName : "default"}`);
+
 	return match && match[1] ? match[1] : null;
 }
 
@@ -449,6 +497,9 @@ async function mainFetchInfo(productLink) {
 		const skuData = await fetchSkuByProductId(productId);
 		console.log(skuData);
 		g_allSkusFromProduct = skuData;
+		g_skuQuantity.textContent = `✅ This product contains ${g_allSkusFromProduct.length} ${
+			g_allSkusFromProduct.length === 1 ? "SKU" : "SKUs"
+		}`;
 
 		const brandStatusData = await fetchBrandStatus(brandId);
 		g_brandStatusData = brandStatusData;
@@ -481,6 +532,7 @@ function toTitleCase(str) {
 	});
 }
 
+// Fetch prodInfo through textLink
 async function fetchProductByTextLink(productLink) {
 	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pub/products/search/${productLink}/p`;
 
@@ -507,6 +559,7 @@ async function fetchProductByTextLink(productLink) {
 	return data; // Return the productId for the next action
 }
 
+// Get complete prodInfo through prodId
 async function fetchProductById(productId) {
 	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog/pvt/product/${productId}`;
 
@@ -519,7 +572,7 @@ async function fetchProductById(productId) {
 
 	return await response.json();
 }
-
+// Get the SKUs inside a product through prodId
 async function fetchSkuByProductId(productId) {
 	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pvt/sku/stockkeepingunitByProductId/${productId}`;
 
@@ -532,7 +585,7 @@ async function fetchSkuByProductId(productId) {
 
 	return await response.json();
 }
-
+// Get if brand is active/inactive
 async function fetchBrandStatus(brandId) {
 	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pvt/brand/${brandId}`;
 
@@ -545,6 +598,7 @@ async function fetchBrandStatus(brandId) {
 
 	return await response.json();
 }
+// Get if category is active/inactive
 async function fetchCategoryStatus(categoryId) {
 	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog/pvt/category/${categoryId}`;
 
@@ -558,46 +612,117 @@ async function fetchCategoryStatus(categoryId) {
 	return await response.json();
 }
 
+// Generate a card for each SKU inside the product
 async function generateCards(dataArray) {
-	const container = document.querySelector(".container");
+	const container = document.querySelector(".cards-container");
+
+	document.querySelector(".sku-quantity-wrap").style.display = "block";
 
 	// Clear the container
 	container.innerHTML = "";
 
-	dataArray.forEach((item) => {
-		const card = document.createElement("div");
-		card.className = "card";
+	dataArray
+		.sort((a, b) => b.IsActive - a.IsActive)
+		.forEach((item) => {
+			const card = document.createElement("div");
+			card.className = "card";
 
-		// Determine card background based on isActive property
-		if (item.IsActive) {
-			card.classList.add("card-active");
-		} else {
-			card.classList.add("card-inactive");
-		}
+			// Determine card background based on isActive property
+			if (item.IsActive) {
+				card.classList.add("card-active");
+			} else {
+				card.classList.add("card-inactive");
+			}
 
-		const cardContent = document.createElement("div");
-		cardContent.className = "card-content";
+			const cardContent = document.createElement("div");
+			cardContent.className = "card-content";
 
-		const skuElem = document.createElement("div");
-		skuElem.className = "sku";
-		skuElem.innerHTML = `<strong>skuID:</strong> <span>${item.Id}</span>`;
+			const skuElem = document.createElement("div");
+			skuElem.className = "sku";
+			skuElem.innerHTML = `<strong>skuID:</strong> <span>${item.Id}</span>`;
 
-		const nameElem = document.createElement("div");
-		nameElem.className = "name";
-		nameElem.innerHTML = `<strong>Name:</strong> <span>${item.Name}</span>`;
+			const nameElem = document.createElement("div");
+			nameElem.className = "name";
+			nameElem.innerHTML = `<strong>Name:</strong> <span>${item.Name}</span>`;
 
-		const statusElem = document.createElement("div");
-		statusElem.className = "status";
-		statusElem.innerHTML = `<strong>isActive:</strong> <span>${item.IsActive}</span>`;
+			const statusElem = document.createElement("div");
+			statusElem.className = "status";
 
-		cardContent.appendChild(skuElem);
-		cardContent.appendChild(nameElem);
-		cardContent.appendChild(statusElem);
+			const statusValueClass = item.IsActive ? "status-true" : "status-false";
+			statusElem.innerHTML = `<strong>isActive:</strong> <span class="${statusValueClass}">${item.IsActive}</span>`;
 
-		card.appendChild(cardContent);
+			// Add button to run the fetchSimulation function
+			const simulateButton = document.createElement("button");
+			simulateButton.classList.add("btn");
+			simulateButton.innerText = "Simulate";
+			simulateButton.onclick = () => fetchSimulation(item.Id);
 
-		container.appendChild(card);
+			cardContent.appendChild(skuElem);
+			cardContent.appendChild(nameElem);
+			cardContent.appendChild(statusElem);
+			cardContent.appendChild(simulateButton); // Append the button to the card content
+
+			card.appendChild(cardContent);
+
+			container.appendChild(card);
+		});
+}
+
+// Do a fulfillment simulation with given skuId
+function fetchSimulation(skuId) {
+	simulationWarn.style.display = "none";
+	simulationInfoContainer.style.display = "block";
+
+	const url = `http://${accountName}.vtexcommercestable.com.br/api/checkout/pvt/orderForms/simulation?sc=${
+		g_salesChannel || "1"
+	}`;
+	const headers = new Headers({
+		VtexIdclientAutCookie: g_cookieValue,
+		"Content-Type": "application/json",
 	});
+
+	const body = JSON.stringify({
+		items: [
+			{
+				id: skuId,
+				quantity: "1",
+				seller: "1",
+			},
+		],
+	});
+
+	fetch(url, {
+		method: "POST",
+		headers: headers,
+		body: body,
+	})
+		.then((response) => response.json())
+		.then((data) => {
+			g_simulationResponse = data;
+			renderObjectInContainer(g_simulationResponse);
+			g_simulationAvailability = g_simulationResponse.items[0].availability;
+			g_simulationSkuId = g_simulationResponse.items[0].id;
+			g_stockBalance = g_simulationResponse.logisticsInfo[0].stockBalance;
+
+			simulationResumeStatus.textContent = g_simulationAvailability === "available" ? "available" : "not available";
+			simulationResumeStockBalance.textContent = g_stockBalance;
+
+			g_simulationAvailability !== "available"
+				? (simulationResumeReason.textContent = g_simulationAvailability)
+				: (document.querySelector(".tb-row-reason").style.display = "none");
+		})
+		.catch((error) => {
+			console.error("Error:", error);
+		});
+}
+
+// Format and render the simulation response inthe DOM
+function renderObjectInContainer(obj) {
+	// Stringify the object with indentation of 2 spaces
+	const prettyString = JSON.stringify(obj, null, 2);
+
+	// Use the <pre> tag to preserve formatting and add the stringified object
+	simulationResponse.innerHTML = `<pre>${prettyString}</pre>`;
 }
 
 // Firing functions

@@ -15,7 +15,8 @@
 				<div class="tab-header">
 					<button class="tablink" data-tab="Content">&lt;storeInfo/&gt;</button>
 					<button class="tablink" data-tab="Product">&lt;productInfo/&gt;</button>
-					<button class="tablink" data-tab="Skus">&lt;skusInfo/&gt;</button>
+					<button class="tablink hidden-tab" data-tab="Skus">&lt;skusInfo/&gt;</button>
+					<button class="tablink hidden-tab" data-tab="Simulate">&lt;Simulation/&gt;</button>
 				</div>
 
 				<!-- Content Tab -->
@@ -200,48 +201,96 @@
 			</div>
 
 			<!-- Product Tab -->
-			<div id="Product" class="tabcontent">
-				<div class="input-container">
-					<div class="input-wrapper">
-						<input type="text" id="cookieInput" placeholder="Enter your cookie value" />
-						<button id="submitBtn">Submit</button>
-					</div>
-					<div id="cookie-msg"></div>
-				</div>
+			<div id="Product" class="tabcontent tabcontent-product">
+				<div class="warn-msg">❌ accountName not available, script will not run correctly ☹️</div>
 
-				<div>
-					<div class="p-info-header">
-						<h2>currentProduct</h2>
+				<div class="product-info-container">
+					<div class="input-container">
+						<div class="cookie-header">
+							<span>⚠️ Use this only in a PDP (Product Detail Page).</span>
+						</div>
+						<div class="cookie-header" style="background-color: #fff9c4">
+							<span>🔽 To get current product information, enter you vtexAuthIdCookie and press 'Submit'.</span>
+						</div>
+						<textarea type="text" id="cookieInput" placeholder="Enter your cookie value" rows="4"></textarea>
+						<button id="submitBtn" class="btn">Submit</button>
+						<div id="cookie-msg"></div>
 					</div>
-					<table class="modern-table">
-						<tbody>
-							<tr>
-								<td class="p-key">productName:</td>
-								<td class="p-value" id="product-name"></td>
-							</tr>
-							<tr>
-								<td class="p-key">productId:</td>
-								<td class="p-value" id="product-id"></td>
-								<td class="p-value" id="product-id-status"></td>
-							</tr>
-							<tr>
-								<td class="p-key">categoryId:</td>
-								<td class="p-value" id="product-category"></td>
-								<td class="p-value" id="product-category-status"></td>
-							</tr>
-							<tr>
-								<td class="p-key">brandId:</td>
-								<td class="p-value" id="product-brand"></td>
-								<td class="p-value" id="product-brand-status"></td>
-							</tr>
-						</tbody>
-					</table>
+
+					<div class="product-table-container">
+						<div class="pre-table-header">
+							<h2>currentProduct</h2>
+						</div>
+						<table class="modern-table">
+							<tbody>
+								<tr>
+									<td class="p-key">productName:</td>
+									<td class="p-value" id="product-name"></td>
+								</tr>
+								<tr>
+									<td class="p-key">productId:</td>
+									<td class="p-value" id="product-id"></td>
+									<td class="p-value" id="product-id-status"></td>
+								</tr>
+								<tr>
+									<td class="p-key">categoryId:</td>
+									<td class="p-value" id="product-category"></td>
+									<td class="p-value" id="product-category-status"></td>
+								</tr>
+								<tr>
+									<td class="p-key">brandId:</td>
+									<td class="p-value" id="product-brand"></td>
+									<td class="p-value" id="product-brand-status"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 
 			<!-- SKUs Tab -->
 			<div id="Skus" class="tabcontent">
-				<div class="container"><div id="fetch-run-msg">Run the fetch!</div></div>
+				<div class="container">
+					<div class="sku-quantity-wrap">
+						<div id="sku-quantity"></div>
+					</div>
+					<div class="cards-container">
+						<div class="warn-msg">⚠️ Run the fetch! (previous tab)</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Simulate tab -->
+			<div id="Simulate" class="tabcontent">
+				<div id="simulation-info-container">
+					<div id="simulation-resume">
+						<div class="pre-table-header"><h2>simulationResume</h2></div>
+
+						<table class="modern-table">
+							<tbody>
+								<tr>
+									<td class="p-key">skuAvailability:</td>
+									<td class="p-value" id="simulation-resume-status"></td>
+								</tr>
+								<tr>
+									<td class="p-key">stockBalance:</td>
+									<td class="p-value" id="simulation-resume-stock"></td>
+								</tr>
+								<tr class="tb-row-reason">
+									<td class="p-key">reason:</td>
+									<td class="p-value" id="simulation-resume-reason"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="simulation-full">
+						<div class="pre-table-header"><h2>fullSimulation</h2></div>
+						<div id="simulation-response"></div>
+					</div>
+				</div>
+				<div class="sim-msg-container">
+					<div class="warn-msg">⚠️ Run a SKU simulation! (previous tab)</div>
+				</div>
 			</div>
 		</div>
 

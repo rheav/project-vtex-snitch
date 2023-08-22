@@ -10,8 +10,12 @@ body {
 	color: #333;
 	margin: 0;
 	font-family: VTEX Trust;
-	border-radius: 10px;
+	border-radius: 7px;
 	font-size: 12px;
+}
+
+* {
+	font-family: VTEX Trust;
 }
 
 h2 {
@@ -63,7 +67,7 @@ h2 {
 	font-size: 0.8em;
 	background-color: #5b6e84;
 	color: #ffffff;
-	border-radius: 10px;
+	border-radius: 7px;
 	padding: 5px 10px;
 	margin-top: 5px;
 }
@@ -71,7 +75,7 @@ h2 {
 #pixels-table {
 	width: 100%;
 	border-collapse: collapse;
-	font-family: Arial, sans-serif;
+	font-family: VTEX Trust;
 	background-color: #f8f7fc;
 }
 
@@ -214,6 +218,10 @@ a:active {
 	display: none;
 }
 
+.hidden-tab {
+	display: none;
+}
+
 .tablink {
 	flex: 1;
 	padding: 10px 15px;
@@ -245,21 +253,28 @@ a:active {
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.input-wrapper {
-	display: flex;
-	gap: 20px;
-	width: 100%;
-	justify-content: center;
+.cookie-header {
+	background-color: lightcyan;
+	border: 1px solid #c1c1c1;
+	border-radius: 7px;
+	padding: 5px 10px;
+	margin-bottom: 10px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 #cookieInput {
 	padding: 10px 15px;
 	border: none;
-	border-radius: 5px;
+	border-radius: 7px;
 	outline: none;
+	width: 94%;
+	height: 100px;
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 	flex-grow: 1;
-	font-size: 16px;
+	font-size: 10px; /* Smaller font size */
+	resize: none; /* Allows users to resize the textarea vertically if needed */
+	white-space: pre-wrap; /* This will wrap long lines of text */
+	word-wrap: break-word; /* This will break words if necessary to wrap lines */
 	transition: box-shadow 0.2s ease;
 }
 
@@ -267,26 +282,12 @@ a:active {
 	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-#submitBtn {
-	padding: 10px 15px;
-	border: none;
-	border-radius: 5px;
-	background-color: rgb(247, 25, 99);
-	color: white;
-	cursor: pointer;
-	transition: background-color 0.2s ease;
-}
-
-#submitBtn:hover {
-	background-color: rgb(217, 15, 89);
-}
-
 #cookie-msg {
 	display: none;
 	text-align: center;
 	font-weight: bold;
 	padding: 10px;
-	border-radius: 8px;
+	border-radius: 7px;
 	background-color: #fff9c4; /* light yellow color */
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 	border: 2px dashed #555; /* dashed border for added effect */
@@ -294,17 +295,24 @@ a:active {
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.p-info-header {
+#submitBtn {
+	margin: 15px;
+}
+
+.pre-table-header {
 	background-color: #ffe0ef;
 	padding: 5px;
 	color: #142032;
 	font-size: 1em;
 	margin-bottom: 0;
+	font-size: 0.9em;
+	font-weight: bold;
+	margin-top: 1.5em;
 }
 .modern-table {
 	border-collapse: collapse;
 	width: 100%;
-	font-family: Arial, sans-serif; /* Feel free to change this */
+	font-family: VTEX Trust;
 	color: #333;
 	background-color: #f9f9f9;
 	box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
@@ -325,8 +333,9 @@ a:active {
 }
 
 .modern-table td {
-	padding: 15px 20px; /* Adjust padding to your preference */
+	padding: 10px; /* Adjust padding to your preference */
 	vertical-align: middle; /* Center content vertically */
+	width: 50%;
 }
 
 .modern-table .p-key {
@@ -340,6 +349,11 @@ a:active {
 }
 
 .container {
+	margin-top: 10px;
+}
+
+.cards-container,
+.sim-msg-container {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 15px;
@@ -347,10 +361,24 @@ a:active {
 	margin-top: 10px;
 }
 
+.sku-quantity-wrap {
+	border: 1px solid #142032;
+	font-weight: bold;
+	color: rgb(247, 25, 99);
+	padding: 10px 20px;
+	text-align: center;
+	font-size: 1em;
+	width: 50%;
+	display: none;
+	border-radius: 5px;
+	margin: 0 auto;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 .card {
 	flex: 1 1 calc(33.333% - 15px);
 	max-width: calc(33.333% - 15px);
-	border-radius: 15px;
+	border-radius: 7px;
 	overflow: hidden;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	background-color: #fafafa;
@@ -362,21 +390,79 @@ a:active {
 }
 
 .card-active {
-	background-color: #e0f2e9; /* light green pastel tone */
+	border: 2px solid #66d9ab; /* Slightly darker than pastel green for contrast */
+	box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
 }
 
 .card-inactive {
-	background-color: #f2e0e6; /* light red pastel tone */
+	border: 2px solid #ff6b6b; /* Slightly darker than pastel red for contrast */
+	box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+	color: #999;
 }
 
-#fetch-run-msg {
+.status-true {
+	color: green;
+	font-weight: bold;
+}
+
+.status-false {
+	color: red;
+	font-weight: bold;
+}
+
+.card-inactive .btn {
+	background-color: #e5e5e5;
+	color: #333;
+	pointer-events: none;
+	cursor: not-allowed;
+}
+
+.warn-msg {
 	text-align: center;
 	font-weight: bold;
 	padding: 10px;
-	border-radius: 8px;
+	border-radius: 7px;
 	background-color: #fff9c4; /* light yellow color */
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 	border: 2px dashed #555; /* dashed border for added effect */
 	margin-top: 20px;
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn {
+	background-color: rgb(247, 25, 99);
+	border: 1px solid transparent;
+	color: white;
+	padding: 10px 20px;
+	text-align: center;
+	text-decoration: none;
+	display: block;
+	font-size: 1.2em;
+	margin: 10px auto;
+	cursor: pointer;
+	border-radius: 4px;
+	transition: all 0.3s;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effect for the button */
+.btn:hover {
+	background-color: transparent;
+	border: 1px solid #142032;
+	box-shadow: 0 6px 8px rgba(0, 0, 0, 0.12);
+	transform: translateY(-2px);
+	color: #142032;
+}
+
+/* Active (when button is pressed) effect */
+.btn:active {
+	background-color: #ffc4dd;
+	border: 1px solid rgb(247, 25, 99);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+	transform: translateY(1px);
+	color: #142032;
+}
+
+#simulation-info-container {
+	display: none;
 }
