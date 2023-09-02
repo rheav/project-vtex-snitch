@@ -1,9 +1,9 @@
 {
 	"manifest_version": 3,
 	"name": "vtexSnitch",
-	"version": "5.2",
-	"description": "The extension will register some information regarding the current store",
-	"author": "Victor Rhea",
+	"version": "6.0j",
+	"description": "vtexSnitch helps you understand what is going on in the current VTEX store you are in.",
+	"author": "Rhea Victor",
 	"icons": {
 		"16": "img/vtex16.png",
 		"48": "img/vtex48.png",
