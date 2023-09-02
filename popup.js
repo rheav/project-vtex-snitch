@@ -102,8 +102,7 @@ function getAccountName() {
 					document.querySelector(".warn-msg").style.display = "none";
 				} else {
 					wrapperAccount.innerText = "❌ Account name not found";
-					accountSub.innerHTML =
-						"⚠️ If this is a FastStore or headless store, check for the accountName directly into source code (CTRL+U).";
+					accountSub.innerHTML = "⚠️ If this is a FastStore or headless store, check for the accountName directly into source code (CTRL+U).";
 					accountSub.style.display = "inline-flex";
 					document.querySelector(".product-info-container").innerHTML = "";
 				}
@@ -120,7 +119,7 @@ function getStoreType() {
 		storeType = "VTEX IO";
 	} else if (sourceCode.includes("CommerceContext.Current.VirtualFolder.Name")) {
 		storeType = "VTEX CMS";
-	} else if (sourceCode.includes("vtexassets") && sourceCode.includes("vtex.file-manager-graphql")) {
+	} else if (/type="text\/partytown"/.test(sourceCode) || /content="Gatsby/.test(sourceCode)) {
 		storeType = "FastStore";
 	} else {
 		storeType = "Unknown";
@@ -169,8 +168,6 @@ function storeVersion() {
 	});
 }
 
-let g_salesChannel;
-
 function getSalesChannel() {
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		var url = new URL(tabs[0].url);
@@ -184,10 +181,8 @@ function getSalesChannel() {
 				currentSalesChannel.innerText = g_salesChannel;
 			})
 			.catch((error) => {
-				wrapperSalesChannel.innerHTML =
-					'❌ Error reading <span style="color:#f71963; font-style:italic;">channel</span> in Segments API';
-				salesChannelSub.innerHTML =
-					"⚠️ If this is a FastStore or headless store, it's expected. Check the SalesChannel through orderForm or network requests.";
+				wrapperSalesChannel.innerHTML = '❌ Error reading <span style="color:#f71963; font-style:italic;">channel</span> in Segments API';
+				salesChannelSub.innerHTML = "⚠️ If this is a FastStore or headless store, it's expected. Check the SalesChannel through orderForm or network requests.";
 				salesChannelSub.style.display = "inline-flex";
 			});
 	});
@@ -202,7 +197,7 @@ function getScriptsLoaded() {
 	var ga4Regex = /src="[^"]*googletagmanager\.com\/gtag\/js\?id=G-[^"]*"/g;
 	var tiktokRegex = /analytics\.tiktok\.com\/i18n\/pixel\/events\.js\?sdkid=|<!--pixel:start:vtexbr\.tiktok-tbp-->/g;
 	var taboolaRegex = /src="[^"]*cdn\.taboola\.com\/libtrc\/unip\/.*?"/g;
-	var pinterestRegex = /window\.pintrk\s*\(\s*([^)]*)\s*\)/g;
+	var pinterestRegex = /\/\/assets\.pinterest\.com\/js\/pinit\.js/g;
 
 	var scriptsLoaded = {
 		fbPixel: sourceCode.match(fbPixelRegex),
@@ -269,11 +264,9 @@ function countScripts() {
 
 					var fbPixelRegex = /src="[^"]*connect\.facebook\.net\/en_US\/fbevents\.js"/g;
 					var gtmRegex = /src="[^"]*googletagmanager\.com\/gtm\.js\?id=GTM-[^"]*"/g;
-					var gaUARegex =
-						/src="[^"]*(googletagmanager\.com\/gtag\/js\?id=UA|www\.google-analytics\.com\/analytics\.js)/g;
+					var gaUARegex = /src="[^"]*(googletagmanager\.com\/gtag\/js\?id=UA|www\.google-analytics\.com\/analytics\.js)/g;
 					var ga4Regex = /src="[^"]*googletagmanager\.com\/gtag\/js\?id=G-[^"]*"/g;
-					var tiktokRegex =
-						/analytics\.tiktok\.com\/i18n\/pixel\/events\.js\?sdkid=|<!--pixel:start:vtexbr\.tiktok-tbp-->/g;
+					var tiktokRegex = /analytics\.tiktok\.com\/i18n\/pixel\/events\.js\?sdkid=|<!--pixel:start:vtexbr\.tiktok-tbp-->/g;
 					var taboolaRegex = /src="[^"]*cdn\.taboola\.com\/libtrc\/unip\/.*?"/g;
 					var pinterestRegex = /window\.pintrk\s*\(\s*([^)]*)\s*\)/g;
 
@@ -381,12 +374,17 @@ function countMetaTags() {
 	});
 }
 
-const cookieWarn = document.getElementById("cookie-msg");
+const fetchResult = document.getElementById("fetch-result");
+const errorsCheck = document.getElementById("check-errors");
+
+const useInPdp = document.getElementById("warn-use-pdp");
+const warnCookieSubmit = document.getElementById("warn-cookie-submit");
+
 let g_cookieValue = "";
 var currentTab = "";
 var currentTabUrl = "";
 
-// Transforming fetched info into gloal scoped info
+// Transforming fetched info into global scoped info
 let g_brandStatusData = "";
 let g_categoryStatusData = "";
 let g_productStatusData = "";
@@ -429,10 +427,20 @@ const simulationResumeReason = document.getElementById("simulation-resume-reason
 let g_simulationAvailability;
 let g_simulationSkuId;
 let g_stockBalance;
+let g_sellerList;
+let g_salesChannel;
+let g_scList = "";
+let g_scIds = "";
+let g_userSelectedSc = "";
+let defaultVal = "";
+
+// SELLER LIST STUFF - TESTING
+const sellerInput = document.getElementById("sellerInput");
+let g_sellerListIds;
 
 document.getElementById("submitBtn").addEventListener("click", function () {
 	g_cookieValue = document.getElementById("cookieInput").value;
-	cookieWarn.style.display = "block";
+	fetchResult.style.display = "block";
 
 	if (g_cookieValue) {
 		getCurrentUrl(); // Call this function to get the current URL when the cookie is valid
@@ -443,8 +451,8 @@ document.getElementById("submitBtn").addEventListener("click", function () {
 			tab.style.display = "inline-block";
 		}
 	} else {
-		cookieWarn.textContent = "⚠️ Please, enter a valid authCookie";
-		cookieWarn.style.backgroundColor = "#fff9c4";
+		fetchResult.textContent = "⚠️ Please, enter a valid authCookie";
+		fetchResult.style.backgroundColor = "#fff9c4";
 	}
 });
 
@@ -459,8 +467,8 @@ function getCurrentUrl() {
 		if (productLink) {
 			mainFetchInfo(productLink);
 		} else {
-			cookieWarn.textContent = "⚠️ Error in fetching product link from URL";
-			cookieWarn.style.backgroundColor = "#fff9c4";
+			fetchResult.textContent = "⚠️ Error in fetching product link from URL";
+			fetchResult.style.backgroundColor = "#fff9c4";
 		}
 	});
 }
@@ -485,8 +493,8 @@ function getProductTextLink(url) {
 async function mainFetchInfo(productLink) {
 	try {
 		// Display "Fetching data..." message before the fetch starts
-		cookieWarn.textContent = "🔄 Fetching data...";
-		cookieWarn.style.backgroundColor = "#f5f5f5"; // Light grey as an example
+		fetchResult.textContent = "🔄 Fetching data...";
+		fetchResult.style.backgroundColor = "#f5f5f5"; // Light grey as an example
 
 		const prodPubData = await fetchProductByTextLink(productLink);
 
@@ -497,9 +505,7 @@ async function mainFetchInfo(productLink) {
 		const skuData = await fetchSkuByProductId(productId);
 		console.log(skuData);
 		g_allSkusFromProduct = skuData;
-		g_skuQuantity.textContent = `✅ This product contains ${g_allSkusFromProduct.length} ${
-			g_allSkusFromProduct.length === 1 ? "SKU" : "SKUs"
-		}`;
+		g_skuQuantity.textContent = `✅ This product contains ${g_allSkusFromProduct.length} ${g_allSkusFromProduct.length === 1 ? "SKU" : "SKUs"}`;
 
 		const brandStatusData = await fetchBrandStatus(brandId);
 		g_brandStatusData = brandStatusData;
@@ -509,19 +515,31 @@ async function mainFetchInfo(productLink) {
 		g_categoryStatusData = categoryStatusData;
 		g_categoryStatus.textContent = g_categoryStatusData.IsActive ? "✅ Categoria ativa" : "❌ Categoria inativa";
 
+		const sellerListData = await fetchSellerList();
+		g_sellerList = sellerListData;
+		g_sellerListIds = g_sellerList.items.map((item) => item.id);
+
+		const salesChannelsList = await fetchSalesChannels();
+		g_scList = salesChannelsList;
+		g_scIds = g_scList.map((channel) => channel.Id);
+
 		generateCards(skuData);
 
 		// Display the success message after all fetches are complete
-		cookieWarn.textContent = "✅ Valid authCookie and fetched data successfully";
-		cookieWarn.style.backgroundColor = "#e5ffe6";
+		fetchResult.textContent = "✅ Valid authCookie and fetched data successfully";
+		fetchResult.style.backgroundColor = "#ddffe0";
+		useInPdp.style.opacity = "0.6";
+		warnCookieSubmit.style.opacity = "0.6";
 	} catch (error) {
 		console.error("Error fetching data:", error);
-		cookieWarn.textContent = "⚠️ Error while fetching data";
-		cookieWarn.style.backgroundColor = "#fff9c4";
+		fetchResult.textContent = "⚠️ Error while fetching data";
+		fetchResult.style.backgroundColor = "";
+
+		if (fetchResult.textContent === "⚠️ Error while fetching data") {
+			errorsCheck.style.display = "block";
+		}
 	}
 }
-
-// bumerange -> accountname
 
 // ----------------------------------------------------------------- Utility functions
 
@@ -615,8 +633,7 @@ async function fetchCategoryStatus(categoryId) {
 // Generate a card for each SKU inside the product
 async function generateCards(dataArray) {
 	const container = document.querySelector(".cards-container");
-
-	document.querySelector(".sku-quantity-wrap").style.display = "block";
+	const skuQuantityWrap = document.querySelector(".sku-quantity-wrap");
 
 	// Clear the container
 	container.innerHTML = "";
@@ -651,31 +668,122 @@ async function generateCards(dataArray) {
 			const statusValueClass = item.IsActive ? "status-true" : "status-false";
 			statusElem.innerHTML = `<strong>isActive:</strong> <span class="${statusValueClass}">${item.IsActive}</span>`;
 
+			// Separate simulation info
+			const separatorHr = document.createElement("hr");
+
+			// Simulation part title
+			const simulationTitle = document.createElement("h3");
+			simulationTitle.textContent = "Build your check-out simulation";
+			simulationTitle.classList.add("simulate-title");
+
+			// Create the label element
+			const labelSeller = document.createElement("label");
+			labelSeller.textContent = "selectSeller";
+
+			// Seller List input
+			const sellerInput = document.createElement("input");
+			sellerInput.type = "text";
+			sellerInput.placeholder = "Seller ID...";
+			sellerInput.classList.add("simulate-input");
+
+			// Create a container for the autocomplete dropdown
+			const autocompleteDropdown = document.createElement("div");
+			autocompleteDropdown.classList.add("autocomplete-dropdown");
+
+			// Create the label element
+			const labelSc = document.createElement("label");
+			labelSc.textContent = "selectSalesChannel";
+
+			// Sales Channel Select
+			const scSelect = document.createElement("select");
+			scSelect.type = "text";
+			scSelect.placeholder = "Sales Channel";
+			scSelect.classList.add("simulate-input");
+
+			// Create an "empty" default option
+			const defaultOption = document.createElement("option");
+			defaultOption.value = "";
+
+			defaultVal = typeof g_salesChannel !== "undefined" ? g_salesChannel : g_scIds.length > 0 ? g_scIds[0] : "";
+
+			// Create options based on the g_scIds array
+			g_scIds.map((id) => {
+				const option = document.createElement("option");
+				option.value = id; // Set the option's value to the ID
+				option.textContent = id; // Display the ID as the option's text
+				scSelect.appendChild(option);
+			});
+
+			// Set the default value of the select element
+			g_userSelectedSc = scSelect.value = defaultVal;
+
 			// Add button to run the fetchSimulation function
 			const simulateButton = document.createElement("button");
 			simulateButton.classList.add("btn");
 			simulateButton.innerText = "Simulate";
-			simulateButton.onclick = () => fetchSimulation(item.Id);
-
+			simulateButton.onclick = () => {
+				const selectedSellerId = sellerInput.value; // Get the selected seller ID
+				fetchSimulation(item.Id, selectedSellerId, g_userSelectedSc); // Pass both SKU ID and selected seller ID
+			};
 			cardContent.appendChild(skuElem);
 			cardContent.appendChild(nameElem);
 			cardContent.appendChild(statusElem);
-			cardContent.appendChild(simulateButton); // Append the button to the card content
-
+			cardContent.appendChild(separatorHr);
+			cardContent.appendChild(simulationTitle);
+			cardContent.appendChild(labelSeller);
+			cardContent.appendChild(sellerInput);
+			cardContent.appendChild(autocompleteDropdown);
+			cardContent.appendChild(labelSc);
+			cardContent.appendChild(scSelect);
+			scSelect.appendChild(defaultOption);
+			cardContent.appendChild(simulateButton);
 			card.appendChild(cardContent);
-
 			container.appendChild(card);
+
+			// Set up autocomplete for the sellerInput element
+			autoCompleteSellers(sellerInput, autocompleteDropdown);
+
+			// Add an event listener to capture the selected value and update g_userSelectedSc
+			scSelect.addEventListener("change", function () {
+				g_userSelectedSc = scSelect.value;
+				fetchSellerList();
+			});
 		});
+
+	// Display the sku-quantity-wrap if there are items
+	skuQuantityWrap.style.display = dataArray.length ? "block" : "none";
+
+	// Get all elements with the class 'card'
+	const cards = document.querySelectorAll(".card");
+
+	// Add event listeners for hover on each card
+	cards.forEach((card) => {
+		card.addEventListener("mouseover", () => {
+			// Add the 'grayed-out' class to all cards except the one being hovered
+			cards.forEach((otherCard) => {
+				if (otherCard !== card) {
+					otherCard.classList.add("grayed-out");
+				}
+			});
+		});
+
+		card.addEventListener("mouseout", () => {
+			// Remove the 'grayed-out' class from all cards when mouse leaves
+			cards.forEach((otherCard) => {
+				otherCard.classList.remove("grayed-out");
+			});
+		});
+	});
 }
 
 // Do a fulfillment simulation with given skuId
-function fetchSimulation(skuId) {
+function fetchSimulation(skuId, selectedSellerId, g_userSelectedSc) {
 	simulationWarn.style.display = "none";
 	simulationInfoContainer.style.display = "block";
 
-	const url = `http://${accountName}.vtexcommercestable.com.br/api/checkout/pvt/orderForms/simulation?sc=${
-		g_salesChannel || "1"
-	}`;
+	const url = `http://${accountName}.vtexcommercestable.com.br/api/checkout/pvt/orderForms/simulation?sc=${g_userSelectedSc ? g_userSelectedSc : g_salesChannel}`;
+
+	console.log(url);
 	const headers = new Headers({
 		VtexIdclientAutCookie: g_cookieValue,
 		"Content-Type": "application/json",
@@ -686,7 +794,7 @@ function fetchSimulation(skuId) {
 			{
 				id: skuId,
 				quantity: "1",
-				seller: "1",
+				seller: selectedSellerId,
 			},
 		],
 	});
@@ -698,18 +806,35 @@ function fetchSimulation(skuId) {
 	})
 		.then((response) => response.json())
 		.then((data) => {
+			// clean previous info
+			simulationResumeReason.textContent = "";
+			simulationResumeStatus.textContent = "";
+			simulationResumeStockBalance.textContent = "";
+
 			g_simulationResponse = data;
 			renderObjectInContainer(g_simulationResponse);
-			g_simulationAvailability = g_simulationResponse.items[0].availability;
-			g_simulationSkuId = g_simulationResponse.items[0].id;
-			g_stockBalance = g_simulationResponse.logisticsInfo[0].stockBalance;
 
-			simulationResumeStatus.textContent = g_simulationAvailability === "available" ? "available" : "not available";
-			simulationResumeStockBalance.textContent = g_stockBalance;
+			// Check if g_simulationResponse.messages[0].text contains 'não encontrado ou indisponível'
+			if (g_simulationResponse.messages[0]?.text.includes("não encontrado ou indisponível")) {
+				simulationResumeReason.textContent = g_simulationResponse.messages[0].text;
+				document.querySelector(".tb-row-reason").style.display = "table-row";
+				simulationResumeStatus.textContent = "Unavailable";
+				document.querySelector(".tb-row-stockBalance").style.display = "none";
+				document.getElementById("unavailable-sc").textContent = g_userSelectedSc;
+				document.getElementById("warn-unavailable-tip").style.display = "block";
+			} else {
+				document.getElementById("warn-unavailable-tip").style.display = "none";
+				document.querySelector(".tb-row-reason").style.display = "none";
+				document.querySelector(".tb-row-stockBalance").style.display = "table-row";
+				g_simulationAvailability = g_simulationResponse.items[0].availability;
+				g_simulationSkuId = g_simulationResponse.items[0].id;
+				g_stockBalance = g_simulationResponse.logisticsInfo[0].stockBalance;
 
-			g_simulationAvailability !== "available"
-				? (simulationResumeReason.textContent = g_simulationAvailability)
-				: (document.querySelector(".tb-row-reason").style.display = "none");
+				simulationResumeStatus.textContent = g_simulationAvailability === "available" ? "available" : "not available";
+				simulationResumeStockBalance.textContent = g_stockBalance;
+
+				g_simulationAvailability !== "available" ? (simulationResumeReason.textContent = g_simulationAvailability) : (document.querySelector(".tb-row-reason").style.display = "none");
+			}
 		})
 		.catch((error) => {
 			console.error("Error:", error);
@@ -725,6 +850,68 @@ function renderObjectInContainer(obj) {
 	simulationResponse.innerHTML = `<pre>${prettyString}</pre>`;
 }
 
+// Get seller list
+async function fetchSellerList() {
+	const url = `https://${accountName}.vtexcommercestable.com.br/api/seller-register/pvt/sellers?from=0&to=100&isActive=true&isBetterScope=false&sc=${
+		g_userSelectedSc ? g_userSelectedSc : g_salesChannel
+	}&sellerType=1&sort=id%3Aasc`;
+	console.log(url);
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers: {
+			VtexIdclientAutCookie: g_cookieValue,
+		},
+	});
+
+	return await response.json();
+}
+// Get salesChannels list
+
+async function fetchSalesChannels() {
+	const url = `https://${accountName}.vtexcommercestable.com.br/api/catalog_system/pvt/saleschannel/list`;
+
+	const response = await fetch(url, {
+		method: "GET",
+		headers: {
+			VtexIdclientAutCookie: g_cookieValue,
+		},
+	});
+
+	return await response.json();
+}
+
+// Autocomplete setup function
+function autoCompleteSellers(inputElement, dropdownElement) {
+	const autocompleteDropdown = dropdownElement;
+
+	inputElement.addEventListener("input", function () {
+		const userInput = inputElement.value.toLowerCase();
+		const suggestions = g_sellerListIds.filter((sellerId) => sellerId.includes(userInput));
+		autocompleteDropdown.style.display = suggestions.length > 0 ? "block" : "none";
+
+		autocompleteDropdown.innerHTML = ""; // Clear previous suggestions
+
+		suggestions.forEach((suggestion) => {
+			const option = document.createElement("div");
+			option.textContent = suggestion;
+			option.classList.add("autocomplete-option");
+			option.addEventListener("click", function () {
+				inputElement.value = suggestion;
+				autocompleteDropdown.innerHTML = ""; // Clear dropdown after selection
+			});
+			autocompleteDropdown.appendChild(option);
+		});
+	});
+
+	// Hide dropdown when clicking outside of it
+	document.addEventListener("click", function (event) {
+		if (!autocompleteDropdown.contains(event.target)) {
+			autocompleteDropdown.style.display = "none"; // Hide the dropdown
+		}
+	});
+}
+
 // Firing functions
 document.addEventListener("DOMContentLoaded", getAccountName);
 document.addEventListener("DOMContentLoaded", storeVersion);
@@ -733,4 +920,3 @@ document.addEventListener("DOMContentLoaded", countScripts);
 document.addEventListener("DOMContentLoaded", loadedMetaTags);
 document.addEventListener("DOMContentLoaded", countMetaTags);
 document.addEventListener("DOMContentLoaded", getSalesChannel);
-document.addEventListener("DOMContentLoaded", getCurrentUrl);

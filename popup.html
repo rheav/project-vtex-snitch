@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="author" content="Victor Rhea" />
 
-		<title>VTEX Snithcer</title>
+		<title>vtexSnitch</title>
 		<link rel="stylesheet" href="design.css" />
 	</head>
 	<body>
@@ -16,34 +16,27 @@
 					<button class="tablink" data-tab="Content">&lt;storeInfo/&gt;</button>
 					<button class="tablink" data-tab="Product">&lt;productInfo/&gt;</button>
 					<button class="tablink hidden-tab" data-tab="Skus">&lt;skusInfo/&gt;</button>
-					<button class="tablink hidden-tab" data-tab="Simulate">&lt;Simulation/&gt;</button>
+					<button class="tablink hidden-tab" data-tab="Simulate">&lt;simulation/&gt;</button>
 				</div>
 
 				<!-- Content Tab -->
 				<div id="Content" class="tabcontent">
 					<div class="message message-account">
 						<h2>VTEX Account</h2>
-						<div id="store-account-holder" class="dynamic-text">
-							✅ Account Name: <span id="store-account-holder__accoutName"></span>
-						</div>
+						<div id="store-account-holder" class="dynamic-text">✅ Account Name: <span id="store-account-holder__accoutName"></span></div>
 						<div id="store-account-subtext"></div>
 					</div>
 
 					<div class="message message-version">
 						<h2 style="margin: 0">VTEX Code Version</h2>
-						<div class="message-warn" style="margin-bottom: 3px">
-							<span id="blinkDot">➡️</span> Check the version through homepage, PLP or PDP, <u>not</u> <i>cart</i> or
-							<i>checkout</i>!
-						</div>
+						<div class="message-warn" style="margin-bottom: 3px"><span class="blinkDot">➡️</span> Check the version through homepage, PLP or PDP, <u>not</u> <i>cart</i> or <i>checkout</i>!</div>
 						<div id="store-version" class="dynamic-text" style="padding: 0 4px"></div>
 						<div id="store-version-subtext"></div>
 					</div>
 
 					<div class="message message-salesChannel">
 						<h2>Sales Channel</h2>
-						<div id="store-salesChannel-holder" class="dynamic-text">
-							✅ Current SC: <span id="store-salesChannel"></span>
-						</div>
+						<div id="store-salesChannel-holder" class="dynamic-text">✅ Current SC: <span id="store-salesChannel"></span></div>
 						<div id="store-salesChannel-subtext"></div>
 					</div>
 
@@ -131,13 +124,8 @@
 									</tr>
 								</tbody>
 							</table>
-							<div class="message-warn">
-								⚠️ Matches >1 does not mean that events are fired twice, but might be good to check!
-							</div>
-							<div class="message-warn warn-2">
-								➡️ Best way to confirm duplicated firing for events is identifying the pixel request through devtools >
-								network tab.
-							</div>
+							<div class="message-warn">⚠️ Matches >1 does not mean that events are fired twice, but might be good to check!</div>
+							<div class="message-warn warn-2">➡️ Best way to confirm duplicated firing for events is identifying the pixel request through devtools > network tab.</div>
 						</span>
 					</div>
 					<div class="message message-metaTags">
@@ -186,15 +174,12 @@
 								</tbody>
 							</table>
 							<div class="message-warn">⚠️ Matches >1 should be checked in the code!</div>
-							<div class="message-warn warn-2">
-								➡️ As there are other ways to verify the domain besides meta tags, matches = 0 is not necessarily a
-								problem.
-							</div>
+							<div class="message-warn warn-2">➡️ As there are other ways to verify the domain besides meta tags, matches = 0 is not necessarily a problem.</div>
 						</span>
 					</div>
 					<div class="extension-version">
 						<div class="extension-version-wrapper">
-							<div class="extension-version-code">v5.2j</div>
+							<div class="extension-version-code">v6.0j</div>
 						</div>
 					</div>
 				</div>
@@ -206,15 +191,31 @@
 
 				<div class="product-info-container">
 					<div class="input-container">
-						<div class="cookie-header">
-							<span>⚠️ Use this only in a PDP (Product Detail Page).</span>
+						<div id="warn-use-pdp" class="cookie-header" style="background-color: #fff9c4">
+							<span><span class="blinkDot">⚠️</span> Use this only in a PDP (Product Detail Page).</span>
 						</div>
-						<div class="cookie-header" style="background-color: #fff9c4">
-							<span>🔽 To get current product information, enter you vtexAuthIdCookie and press 'Submit'.</span>
+						<div id="warn-cookie-submit" class="cookie-header" style="background-color: #5b6e84; color: #fafafa">
+							<span>🍪To get current product information, enter your <i>VtexIdclientAutCookie</i> and press 'Submit'.</span>
 						</div>
 						<textarea type="text" id="cookieInput" placeholder="Enter your cookie value" rows="4"></textarea>
 						<button id="submitBtn" class="btn">Submit</button>
-						<div id="cookie-msg"></div>
+						<div id="fetch-result"></div>
+						<div id="check-errors">
+							<p>💡 Possible reasons for this error:</p>
+							<ul class="error-list">
+								<li>➡️ Check if <span class="colored-text">&nbsp;brand&nbsp;</span> is active</li>
+								<li>➡️ Check if <span class="colored-text">&nbsp;category&nbsp;</span> is active</li>
+								<li>
+									➡️ Check if product is correctly indexed in Admin's
+									<span class="colored-text">&nbsp;indexedInfo</span>
+								</li>
+								<li>
+									➡️ Check
+									<a href="https://help.vtex.com/en/faq/por-que-o-produto-nao-aparece-no-site--frequentlyAskedQuestions_382" class="colored-text" target="_blank">&nbsp;this VTEX Help docs&nbsp;</a>
+									for complete debug
+								</li>
+							</ul>
+						</div>
 					</div>
 
 					<div class="product-table-container">
@@ -272,7 +273,7 @@
 									<td class="p-key">skuAvailability:</td>
 									<td class="p-value" id="simulation-resume-status"></td>
 								</tr>
-								<tr>
+								<tr class="tb-row-stockBalance">
 									<td class="p-key">stockBalance:</td>
 									<td class="p-value" id="simulation-resume-stock"></td>
 								</tr>
@@ -282,6 +283,11 @@
 								</tr>
 							</tbody>
 						</table>
+						<div id="warn-unavailable-tip" class="cookie-header" style="background-color: #5b6e84; color: #fafafa">
+							<span
+								>💡 Probably the SKU is not flagged on this salesChannel <span class="unavailable-sc-tip-data">sc=<span id="unavailable-sc"></span></span>
+							</span>
+						</div>
 					</div>
 					<div class="simulation-full">
 						<div class="pre-table-header"><h2>fullSimulation</h2></div>
