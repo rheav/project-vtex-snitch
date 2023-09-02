@@ -833,7 +833,12 @@ function fetchSimulation(skuId, selectedSellerId, g_userSelectedSc) {
 				simulationResumeStatus.textContent = g_simulationAvailability === "available" ? "available" : "not available";
 				simulationResumeStockBalance.textContent = g_stockBalance;
 
-				g_simulationAvailability !== "available" ? (simulationResumeReason.textContent = g_simulationAvailability) : (document.querySelector(".tb-row-reason").style.display = "none");
+				if (g_simulationAvailability !== "available") {
+					simulationResumeReason.textContent = g_simulationAvailability;
+					document.querySelector(".tb-row-reason").style.display = "table-row";
+				} else {
+					document.querySelector(".tb-row-reason").style.display = "none";
+				}
 			}
 		})
 		.catch((error) => {
